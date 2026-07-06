@@ -31,6 +31,9 @@ workflow {
 	align_ch = Channel.empty()
 	counts_ch = nevermore_main.out.readcounts
 
+
+	nevermore_main.out.fastqs.dump(pretty: true, tag: "fastqs_ch")
+
 	if (!do_stream && do_alignment) {
 		nevermore_align(nevermore_main.out.fastqs)
 		align_ch = nevermore_align.out.alignments
