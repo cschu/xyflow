@@ -8,6 +8,8 @@ include { gffquant_flow } from "./nevermore/workflows/gffquant"
 include { fastq_input } from "./nevermore/workflows/input"
 include { collate_stats } from "./nevermore/modules/stats"
 
+include { bowtie2_build } from "./nevermore/modules/align/bowtie2"
+
 
 workflow {
 	def input_dir = (params.input_dir) ? params.input_dir : params.remote_input_dir
@@ -26,13 +28,24 @@ workflow {
 
 	fastq_ch = fastq_input.out.fastqs
 	
+	bowtie2_build(
+		Channel.fromPath(params.reference_fasta).map { file -> [ "reference", file ] }
+	)
 	nevermore_main(fastq_ch)
 
-	align_ch = Channel.empty()
+	nevermore_main.out.fastqs.dump(pretty: true, tag: "fastqs_ch")
+
+	align_ch = nevermore_main.out.fastqs
+		.filter { sample, files -> sample.is_paired }
+	
+	align_ch.dump(pretty: true, tag: "align_ch")
+
 	counts_ch = nevermore_main.out.readcounts
 
 
-	nevermore_main.out.fastqs.dump(pretty: true, tag: "fastqs_ch")
+
+
+
 
 	if (!do_stream && do_alignment) {
 		nevermore_align(nevermore_main.out.fastqs)
