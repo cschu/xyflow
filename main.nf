@@ -29,7 +29,7 @@ workflow {
 	fastq_ch = fastq_input.out.fastqs
 	
 	bowtie2_build(
-		Channel.fromPath(params.reference_fasta).map { file -> [ "reference", file ] }
+		Channel.fromPath(params.reference_fasta).map { file -> [ [id: "reference"], file ] }
 	)
 	nevermore_main(fastq_ch)
 
