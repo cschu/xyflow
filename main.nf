@@ -11,6 +11,32 @@ include { collate_stats } from "./nevermore/modules/stats"
 include { bowtie2_build; bowtie2_align } from "./nevermore/modules/align/bowtie2"
 
 
+process scims {
+	conda "/scratch/schudoma/envs/scims"
+	tag "${sample.id}"
+    cpus 1
+    time {4.h * task.attempt}
+
+	input:
+	tuple val(sample), path(index_stats)
+	tuple val(homogametic_chr), val(heterogametic_chr), path(scaffolds)
+
+	script:
+	"""
+	set -e -o pipefail
+
+	mkdir -p ${sample.id}/scims
+
+	scims call \
+    --idxstats_file ${index_stats} \
+    --scaffolds ${scaffolds} \
+    --homogametic_id ${homogametic_chr} \
+    --heterogametic_id ${heterogametic_ch} \
+    --output_dir ${sample.id}/scims
+	"""
+}
+
+
 process samtools_idxstats {
 	container "registry.git.embl.org/schudoma/bowtie2-docker:latest"
 	tag "${sample.id}"
@@ -71,6 +97,17 @@ workflow {
 	samtools_idxstats(
 		bowtie2_align.out.bam.join(bowtie2_align.out.bai, by: 0)
 	)
+
+	scims_ch = Channel.fromPath(params.scaffolds)
+		.map { file -> [ params.homogametic_chr, params.heterogametic_ch, file ] }
+	// tuple val(sample), path(index_stats)
+	// tuple val(homogametic_chr), val(heterogametic_chr), path(scaffolds)
+
+	scims(
+		samtools_idxstats.out.stats,
+		scims_ch
+	)
+
 
 	if (!do_stream && do_alignment) {
 		nevermore_align(nevermore_main.out.fastqs)
