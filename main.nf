@@ -56,7 +56,8 @@ process scims_collate {
 	set -e -o pipefail
 	mkdir -p tmp/
 
-	awk -v OFS='\\t' 'NR==1 || FNR>1 { print \$0; }' ${scims_results} | sort -k1,1 -T tmp/ > scims_collated.txt
+	head -n 1 ${scims_results[0]} > scims_collated.txt
+	awk -v OFS='\\t' 'FNR>1 { print \$0; }' ${scims_results} | sort -k1,1 -T tmp/ >> scims_collated.txt
 	"""
 }
 
