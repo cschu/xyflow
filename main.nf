@@ -53,7 +53,10 @@ process scims_collate {
 
 	script:
 	"""
-	awk -v OFS='\\t' 'NR==1 || FNR>1 { print \$0; }' ${scims_results} > scims_collated.txt
+	set -e -o pipefail
+	mkdir -p tmp/
+
+	awk -v OFS='\\t' 'NR==1 || FNR>1 { print \$0; }' ${scims_results} | sort -k1,1 -T tmp/ > scims_collated.txt
 	"""
 }
 
