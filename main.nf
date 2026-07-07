@@ -8,7 +8,7 @@ include { gffquant_flow } from "./nevermore/workflows/gffquant"
 include { fastq_input } from "./nevermore/workflows/input"
 include { collate_stats } from "./nevermore/modules/stats"
 
-include { bowtie2_build } from "./nevermore/modules/align/bowtie2"
+include { bowtie2_build; bowtie2_align } from "./nevermore/modules/align/bowtie2"
 
 
 workflow {
@@ -37,12 +37,13 @@ workflow {
 
 	align_ch = nevermore_main.out.fastqs
 		.filter { sample, files -> sample.is_paired }
+		.combine(bowtie2_build.out.index.map { _sample, index -> index })
 	
 	align_ch.dump(pretty: true, tag: "align_ch")
 
 	counts_ch = nevermore_main.out.readcounts
 
-
+	bowtie2_align(align_ch)
 
 
 

@@ -27,6 +27,8 @@ process bowtie2_build {
 process bowtie2_align {
 	container "registry.git.embl.org/schudoma/bowtie2-docker:latest"
 	tag "${sample.id}"
+    cpus 8
+    time {4.h * task.attempt}
 
 	input:
     tuple val(sample), path(fastqs), path(index)
