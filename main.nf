@@ -11,6 +11,29 @@ include { collate_stats } from "./nevermore/modules/stats"
 include { bowtie2_build; bowtie2_align } from "./nevermore/modules/align/bowtie2"
 
 
+process samtools_idxstats {
+	container "registry.git.embl.org/schudoma/bowtie2-docker:latest"
+	tag "${sample.id}"
+    cpus 1
+    time {4.h * task.attempt}
+
+	input:
+	tuple val(sample), path(bam), path(index)
+	
+	output:
+	tuple val(sample), path("${sample.id}/idxstats/${sample.id}.idxstats.txt"), emit: stats
+
+	script:
+	"""
+	set -e -o pipefail
+
+	mkdir -p ${sample.id}/indexstats/
+
+	samtools idxstats ${bam} > ${sample.id}/idxstats/${sample.id}.idxstats.txt
+	"""
+}
+
+
 workflow {
 	def input_dir = (params.input_dir) ? params.input_dir : params.remote_input_dir
 	def do_alignment = params.run_gffquant || !params.skip_alignment
@@ -45,8 +68,9 @@ workflow {
 
 	bowtie2_align(align_ch)
 
-
-
+	samtools_idxstats(
+		bowtie2_align.out.bam.join(bowtie2_align.out.bai, by: 0)
+	)
 
 	if (!do_stream && do_alignment) {
 		nevermore_align(nevermore_main.out.fastqs)
