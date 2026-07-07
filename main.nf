@@ -37,7 +37,7 @@ workflow {
 
 	align_ch = nevermore_main.out.fastqs
 		.filter { sample, files -> sample.is_paired }
-		.combine(bowtie2_build.out.index.map { _sample, index -> index })
+		.combine(bowtie2_build.out.index.map { _sample, index -> [ index ] })
 	
 	align_ch.dump(pretty: true, tag: "align_ch")
 
