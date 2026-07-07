@@ -21,6 +21,10 @@ process scims {
 	tuple val(sample), path(index_stats)
 	tuple val(homogametic_chr), val(heterogametic_chr), path(scaffolds)
 
+	output:
+	tuple val(sample), path("${sample.id}/scims/*_results.txt"), emit: results
+	// work/1e/0e6c5d680b3c8d1fc4a4a5796d7052/HP51/scims/HP51_results.txt
+
 	script:
 	"""
 	set -e -o pipefail
@@ -33,6 +37,23 @@ process scims {
     --homogametic_id ${homogametic_chr} \
     --heterogametic_id ${heterogametic_chr} \
     --output_dir ${sample.id}/scims
+	"""
+}
+
+process scims_collate {
+	tag "Collating..."
+	executor "local"
+	publishDir "${params.output_dir}", mode: "copy"
+
+	input:
+	path(scims_results)
+
+	output:
+	path("scims_collated.txt")
+
+	script:
+	"""
+	awk -v OFS='\\t' 'NR==1 || NFR>1 { print \$0; }' ${scims_results} > scims_collated.txt
 	"""
 }
 
@@ -108,6 +129,7 @@ workflow {
 		[ params.homogametic_chr, params.heterogametic_ch, params.scaffolds ]
 	)
 
+	scims_collate(scims.out.results.map { sample, file -> file }.collect())
 
 	if (!do_stream && do_alignment) {
 		nevermore_align(nevermore_main.out.fastqs)
