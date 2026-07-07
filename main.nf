@@ -105,7 +105,7 @@ workflow {
 
 	scims(
 		samtools_idxstats.out.stats,
-		scims_ch
+		[ params.homogametic_chr, params.heterogametic_ch, params.scaffolds ]
 	)
 
 
