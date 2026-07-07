@@ -53,7 +53,7 @@ process scims_collate {
 
 	script:
 	"""
-	awk -v OFS='\\t' 'NR==1 || NFR>1 { print \$0; }' ${scims_results} > scims_collated.txt
+	awk -v OFS='\\t' 'NR==1 || FNR>1 { print \$0; }' ${scims_results} > scims_collated.txt
 	"""
 }
 
