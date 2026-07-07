@@ -31,7 +31,7 @@ process scims {
     --idxstats_file ${index_stats} \
     --scaffolds ${scaffolds} \
     --homogametic_id ${homogametic_chr} \
-    --heterogametic_id ${heterogametic_ch} \
+    --heterogametic_id ${heterogametic_chr} \
     --output_dir ${sample.id}/scims
 	"""
 }
