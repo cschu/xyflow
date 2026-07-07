@@ -27,7 +27,7 @@ process samtools_idxstats {
 	"""
 	set -e -o pipefail
 
-	mkdir -p ${sample.id}/indexstats/
+	mkdir -p ${sample.id}/idxstats/
 
 	samtools idxstats ${bam} > ${sample.id}/idxstats/${sample.id}.idxstats.txt
 	"""
